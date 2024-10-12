@@ -1,0 +1,20 @@
+{
+    "name": "umityatarkalkmaz/route",
+    "description": "A simple PHP routing class",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Umityatarkalkmaz",
+            "email": "umityatarkalkmaz@gmail.com.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Umityatarkalkmaz\\": "src/"
+        }
+    }
+}
