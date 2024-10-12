@@ -1,14 +1,16 @@
 <?php
-namespace UmitYatarkalkmaz;
+namespace Umityatarkalkmaz;
+
+use Closure;
+
 class Route
 {
     private static bool $test = true;
     private static array $patterns = [':id' => '([0-9]+)', ':url' => '([0-9a-zA-Z-_]+)'];
 
-    private static array $routes = ['get' => [], 'post' => []];
+    private static array $routes = ['get' => [], 'post' => [], 'put' => [], 'delete' => []];
     private static string $prefix = '';
     private static bool $hasRoute = false;
-    private static string $controllerPath = '/app/controller/';
 
     public static function prefix($prefix): self
     {
@@ -16,7 +18,7 @@ class Route
         return new self();
     }
 
-    public static function group(\Closure $closure): void
+    public static function group(Closure $closure): void
     {
         $closure();
         self::$prefix = '';
@@ -37,8 +39,9 @@ class Route
 
     private static function clearURL($url): string
     {
-        $url = $url === '/' ? $url : rtrim($url, '/');
-        return $url;
+        $url = explode('?', $url);
+        $url = $url[0];
+        return $url === '/' ? $url : rtrim($url, '/');
     }
 
     public static function post(string $path, $callback): void
@@ -70,11 +73,9 @@ class Route
                     [$controllerName, $methodName] = explode('@', $callback);
                     $controllerName = explode('/', $controllerName);
                     $controllerName = end($controllerName);
-                    $controllerFile = self::$controllerPath . strtolower($controllerName) . '.php';
 
-                    require_once $controllerFile;
-
-                    $controller = new $controllerName;
+                    $controllerName = '\Path\To\Controller\\' . $controllerName;
+                    $controller = new $controllerName();
                     call_user_func_array([$controller, $methodName], $params);
                 }
             }
@@ -91,22 +92,16 @@ class Route
 
     private static function getMethod(): string
     {
-        return strtolower($_SERVER['REQUEST_METHOD']);
+        return strtolower($_PSOT['_method']) ?? strtolower($_SERVER['REQUEST_METHOD']);
     }
 
-    private static function handleNoRoute($controllerEnable = true): void
+    private static function handleNoRoute(): void
     {
         if (!self::$hasRoute) {
-            if (self::$test) {
+            if (self::$test && DEVELOP) {
                 echo self::getUrl();
             } else {
-                if ($controllerEnable){
-                    header('location:/404');
-                }else{
-                    http_response_code(404);
-                    echo '404 NOT FOUND';
-                    exit();
-                }
+                header('location:/404');
             }
         }
     }
@@ -114,5 +109,27 @@ class Route
     public function where($key, $pattern): void
     {
         self::$patterns[':' . $key] = '(' . $pattern . ')';
+    }
+
+
+    public static function delete(string $path, $callback): void
+    {
+        $path = self::applyPrefix($path);
+        self::$routes['delete'][$path] = $callback;
+    }
+
+    public static function put(string $path, $callback): void
+    {
+        $path = self::applyPrefix($path);
+        self::$routes['put'][$path] = $callback;
+    }
+    public static function delete_html(): string
+    {
+        return '<imput type="hidden" name="_method" value="delete">';
+    }
+
+    public static function put_html(string $path, $callback): string
+    {
+        return '<imput type="hidden" name="_method" value="put">';
     }
 }
