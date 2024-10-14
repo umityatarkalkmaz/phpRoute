@@ -3,7 +3,7 @@ namespace Umityatarkalkmaz;
 
 use Closure;
 
-class Route
+class route
 {
     private static bool $test = true;
     private static array $patterns = [':id' => '([0-9]+)', ':url' => '([0-9a-zA-Z-_]+)'];
@@ -92,13 +92,13 @@ class Route
 
     private static function getMethod(): string
     {
-        return strtolower($_PSOT['_method']) ?? strtolower($_SERVER['REQUEST_METHOD']);
+        return isset($_POST['_method']) ? strtolower($_POST['_method']) : strtolower($_SERVER['REQUEST_METHOD']);
     }
 
     private static function handleNoRoute(): void
     {
         if (!self::$hasRoute) {
-            if (self::$test && DEVELOP) {
+            if (self::$test) {
                 echo self::getUrl();
             } else {
                 header('location:/404');
